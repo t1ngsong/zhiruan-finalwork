@@ -1,6 +1,6 @@
 # Coding Agent Harness 实现计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **目标：** 从零构建一个 Python Coding Agent Harness，支持 DeepSeek LLM + Mock LLM，以治理护栏为重点维度。
 
@@ -124,7 +124,7 @@ tests/
 - 无依赖
 - Produces: 项目可被 `pip install -e .` 安装，`pytest` 可发现测试
 
-- [ ] **Step 1: 创建 pyproject.toml**
+- [x] **Step 1: 创建 pyproject.toml**
 
 ```toml
 [build-system]
@@ -155,11 +155,11 @@ where = ["src"]
 testpaths = ["tests"]
 ```
 
-- [ ] **Step 2: 创建目录结构并初始化**
+- [x] **Step 2: 创建目录结构并初始化**
 
 创建所有空目录和 `__init__.py` 文件（`src/agent/` 下所有子包 + `tests/` 下所有子目录）。
 
-- [ ] **Step 3: 创建 .gitignore**
+- [x] **Step 3: 创建 .gitignore**
 
 ```gitignore
 __pycache__/
@@ -173,7 +173,7 @@ dist/
 .pytest_cache/
 ```
 
-- [ ] **Step 4: 创建默认 .agent.yaml**
+- [x] **Step 4: 创建默认 .agent.yaml**
 
 ```yaml
 model: deepseek-chat
@@ -200,7 +200,7 @@ feedback:
   type_check_command: "mypy ."
 ```
 
-- [ ] **Step 5: 创建 tests/conftest.py**
+- [x] **Step 5: 创建 tests/conftest.py**
 
 ```python
 import pytest
@@ -223,7 +223,7 @@ def sample_file(temp_workspace):
     return file_path
 ```
 
-- [ ] **Step 6: 安装验证**
+- [x] **Step 6: 安装验证**
 
 Run: `pip install -e .`
 Expected: 安装成功，无错误
@@ -231,12 +231,14 @@ Expected: 安装成功，无错误
 Run: `python -c "import agent; print('OK')"`
 Expected: 输出 OK
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add -A
 git commit -m "feat: 项目脚手架 - pyproject.toml, 目录结构, .gitignore, .agent.yaml"
 ```
+
+> ✅ **Task 1 完成** — commit: `e2d6741`
 
 ---
 
@@ -258,7 +260,7 @@ git commit -m "feat: 项目脚手架 - pyproject.toml, 目录结构, .gitignore,
   - `DeepSeekAdapter(api_key: str, model: str)` — 实现 `chat`
   - `MockLLMAdapter(script: list[LLMResponse])` — 实现 `chat`，按序列消费
 
-- [ ] **Step 1: 写 LLMAdapter 失败测试**
+- [x] **Step 1: 写 LLMAdapter 失败测试**
 
 ```python
 # tests/llm/test_mock.py
@@ -330,12 +332,12 @@ def test_mock_llm_with_tool_calls():
     assert r.tool_calls[0]["name"] == "shell"
 ```
 
-- [ ] **Step 2: 运行测试验证失败**
+- [x] **Step 2: 运行测试验证失败**
 
 Run: `pytest tests/llm/test_mock.py -v`
 Expected: 全部 FAIL — LLMAdapter, LLMResponse, MockLLMAdapter 均未定义
 
-- [ ] **Step 3: 实现 adepter.py + mock.py**
+- [x] **Step 3: 实现 adepter.py + mock.py**
 
 ```python
 # src/agent/llm/adapter.py
@@ -388,12 +390,12 @@ from agent.llm.mock import MockLLMAdapter
 __all__ = ["LLMAdapter", "LLMResponse", "MockLLMAdapter"]
 ```
 
-- [ ] **Step 4: 运行测试验证通过**
+- [x] **Step 4: 运行测试验证通过**
 
 Run: `pytest tests/llm/test_mock.py -v`
 Expected: 全部 PASS
 
-- [ ] **Step 5: 实现 DeepSeekAdapter**
+- [x] **Step 5: 实现 DeepSeekAdapter**
 
 ```python
 # src/agent/llm/deepseek.py
@@ -447,12 +449,14 @@ class DeepSeekAdapter(LLMAdapter):
         ]
 ```
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add src/agent/llm/ tests/llm/
 git commit -m "feat: LLM 抽象层 - LLMAdapter, MockLLMAdapter, DeepSeekAdapter"
 ```
+
+> ✅ **Task 2 完成** — commit: `887b102`
 
 ---
 
@@ -467,7 +471,7 @@ git commit -m "feat: LLM 抽象层 - LLMAdapter, MockLLMAdapter, DeepSeekAdapter
 - Produces: `ActionParser.parse(response: LLMResponse) -> Action`
   - `Action` 为 dataclass: `type: "TEXT" | "TOOL_CALL" | "FINISH"`, `content/tool_name/args` 等字段
 
-- [ ] **Step 1: 写 ActionParser 失败测试**
+- [x] **Step 1: 写 ActionParser 失败测试**
 
 ```python
 # tests/test_parser.py
@@ -530,12 +534,12 @@ def test_parse_tool_call_with_json_parse_error():
     assert "参数解析失败" in action.content
 ```
 
-- [ ] **Step 2: 运行测试验证失败**
+- [x] **Step 2: 运行测试验证失败**
 
 Run: `pytest tests/test_parser.py -v`
 Expected: 全部 FAIL
 
-- [ ] **Step 3: 实现 ActionParser**
+- [x] **Step 3: 实现 ActionParser**
 
 ```python
 # src/agent/parser.py
@@ -584,17 +588,19 @@ class ActionParser:
         return Action(type="TEXT", content=content)
 ```
 
-- [ ] **Step 4: 运行测试验证通过**
+- [x] **Step 4: 运行测试验证通过**
 
 Run: `pytest tests/test_parser.py -v`
 Expected: 全部 PASS
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent/parser.py tests/test_parser.py
 git commit -m "feat: 动作解析器 - ActionParser 解析 LLM 响应为 TEXT/TOOL_CALL/FINISH"
 ```
+
+> ✅ **Task 3 完成** — commit: `ee26bd7`
 
 ---
 
@@ -612,7 +618,7 @@ git commit -m "feat: 动作解析器 - ActionParser 解析 LLM 响应为 TEXT/TO
   - `ConfigLoader.load(config_path: str, cli_args: Namespace | None) -> Config`
   - 优先级: CLI args > 配置文件 > 默认值
 
-- [ ] **Step 1: 写 ConfigLoader 失败测试**
+- [x] **Step 1: 写 ConfigLoader 失败测试**
 
 ```python
 # tests/config/test_loader.py
@@ -685,12 +691,12 @@ def test_cli_overrides_default():
     assert config.max_rounds == 5
 ```
 
-- [ ] **Step 2: 运行测试验证失败**
+- [x] **Step 2: 运行测试验证失败**
 
 Run: `pytest tests/config/test_loader.py -v`
 Expected: 全部 FAIL
 
-- [ ] **Step 3: 实现 ConfigLoader**
+- [x] **Step 3: 实现 ConfigLoader**
 
 ```python
 # src/agent/config/loader.py
@@ -771,17 +777,19 @@ class ConfigLoader:
         return config
 ```
 
-- [ ] **Step 4: 运行测试验证通过**
+- [x] **Step 4: 运行测试验证通过**
 
 Run: `pytest tests/config/test_loader.py -v`
 Expected: 全部 PASS
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent/config/ tests/config/
 git commit -m "feat: 配置系统 - ConfigLoader 支持 YAML + CLI 覆盖"
 ```
+
+> ✅ **Task 4 完成** — commit: `f83cca3`
 
 ---
 
@@ -809,7 +817,7 @@ git commit -m "feat: 配置系统 - ConfigLoader 支持 YAML + CLI 覆盖"
   - `ToolResult(success, exit_code, stdout, stderr, error, tool_name)`
   - `RiskLevel` enum: LOW, MEDIUM, HIGH, FATAL
 
-- [ ] **Step 1: 写 ToolResult 和 RiskLevel 数据类**
+- [x] **Step 1: 写 ToolResult 和 RiskLevel 数据类**
 
 合并到 `src/agent/tools/__init__.py`：
 ```python
@@ -834,7 +842,7 @@ class ToolResult:
     tool_name: str = ""
 ```
 
-- [ ] **Step 2: 写 ToolRegistry 测试 + 实现**
+- [x] **Step 2: 写 ToolRegistry 测试 + 实现**
 
 ```python
 # tests/tools/test_registry.py
@@ -909,7 +917,7 @@ class ToolRegistry:
         ]
 ```
 
-- [ ] **Step 3: 写 ToolExecutor 测试 + 实现**
+- [x] **Step 3: 写 ToolExecutor 测试 + 实现**
 
 ```python
 # tests/tools/test_executor.py
@@ -992,7 +1000,7 @@ class ToolExecutor:
             )
 ```
 
-- [ ] **Step 4: 实现四个工具处理函数**
+- [x] **Step 4: 实现四个工具处理函数**
 
 ```python
 # src/agent/tools/file_tools.py
@@ -1066,7 +1074,7 @@ def search(workspace: Path, pattern: str, path: str = ".") -> str:
         return "\n".join(matches) if matches else "无匹配结果"
 ```
 
-- [ ] **Step 5: 写工具文件的独立测试**
+- [x] **Step 5: 写工具文件的独立测试**
 
 ```python
 # tests/tools/test_file_tools.py
@@ -1115,17 +1123,19 @@ def test_search_finds_pattern(temp_workspace, sample_file):
     assert "hello" in result.lower()
 ```
 
-- [ ] **Step 6: 运行所有工具测试验证通过**
+- [x] **Step 6: 运行所有工具测试验证通过**
 
 Run: `pytest tests/tools/ -v`
 Expected: 全部 PASS
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add src/agent/tools/ tests/tools/
 git commit -m "feat: 工具系统 - ToolRegistry, ToolExecutor, 4 个核心工具"
 ```
+
+> ✅ **Task 5 完成** — commit: `d177105`
 
 ---
 
@@ -1155,7 +1165,7 @@ git commit -m "feat: 工具系统 - ToolRegistry, ToolExecutor, 4 个核心工�
   - `ScopeFence(workspace: Path).check(tool_name, args) -> GuardResult`
   - `GuardrailCoordinator(scorer, hitl, fence).check(tool_name, args) -> GuardResult`
 
-- [ ] **Step 1: 写护栏数据类 + 危险模式库**
+- [x] **Step 1: 写护栏数据类 + 危险模式库**
 
 ```python
 # src/agent/guardrails/__init__.py
@@ -1214,7 +1224,7 @@ def match_pattern(cmd: str, custom_patterns: list[dict] = None) -> RiskResult:
     return RiskResult(RiskLevel.LOW, "")
 ```
 
-- [ ] **Step 2: 写 patterns 测试**
+- [x] **Step 2: 写 patterns 测试**
 
 ```python
 # tests/guardrails/test_patterns.py
@@ -1261,12 +1271,12 @@ def test_custom_pattern_overrides():
     assert "自定义" in result.reason
 ```
 
-- [ ] **Step 3: 运行 patterns 测试验证通过**
+- [x] **Step 3: 运行 patterns 测试验证通过**
 
 Run: `pytest tests/guardrails/test_patterns.py -v`
 Expected: 全部 PASS（因为只测 patterns，不依赖 scorer）
 
-- [ ] **Step 4: 实现 RiskScorer + HITLGate + ScopeFence + GuardrailCoordinator**
+- [x] **Step 4: 实现 RiskScorer + HITLGate + ScopeFence + GuardrailCoordinator**
 
 ```python
 # src/agent/guardrails/scorer.py
@@ -1401,7 +1411,7 @@ class GuardrailCoordinator:
         return GuardResult(blocked=False)
 ```
 
-- [ ] **Step 5: 写 scorer、hitl、fence、coordinator 测试**
+- [x] **Step 5: 写 scorer、hitl、fence、coordinator 测试**
 
 ```python
 # tests/guardrails/test_scorer.py
@@ -1548,17 +1558,19 @@ def test_write_outside_workspace_blocked(coordinator):
     assert result.blocked
 ```
 
-- [ ] **Step 6: 运行全部护栏测试**
+- [x] **Step 6: 运行全部护栏测试**
 
 Run: `pytest tests/guardrails/ -v`
 Expected: 全部 PASS（HITL 测试可能因无 tty 而需要 mock input）
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add src/agent/guardrails/ tests/guardrails/
 git commit -m "feat: 治理护栏系统 - 模式匹配, 风险评分, HITL 状态机, 范围围栏, 协调器"
 ```
+
+> ✅ **Task 6 完成** — commit: `3d40950`
 
 ---
 
@@ -1587,7 +1599,7 @@ git commit -m "feat: 治理护栏系统 - 模式匹配, 风险评分, HITL 状�
   - `TypeCheckParser.parse(stdout: str) -> list[TypeError]`
   - `FeedbackCollector.collect(result: ToolResult) -> Feedback`
 
-- [ ] **Step 1: 写反馈数据类 + FeedbackCollector**
+- [x] **Step 1: 写反馈数据类 + FeedbackCollector**
 
 ```python
 # src/agent/feedback/__init__.py
@@ -1643,7 +1655,7 @@ class Feedback:
         return "\n".join(parts) if parts else "✅ 全部通过"
 ```
 
-- [ ] **Step 2: 实现三个解析器**
+- [x] **Step 2: 实现三个解析器**
 
 ```python
 # src/agent/feedback/test_parser.py
@@ -1738,7 +1750,7 @@ class TypeCheckParser:
         return errors
 ```
 
-- [ ] **Step 3: 实现 FeedbackCollector**
+- [x] **Step 3: 实现 FeedbackCollector**
 
 ```python
 # src/agent/feedback/collector.py
@@ -1785,7 +1797,7 @@ class FeedbackCollector:
         return fb
 ```
 
-- [ ] **Step 4: 写解析器测试**
+- [x] **Step 4: 写解析器测试**
 
 ```python
 # tests/feedback/test_test_parser.py
@@ -1892,17 +1904,19 @@ def test_format_for_llm():
     assert "FAILED test_x" in text
 ```
 
-- [ ] **Step 5: 运行反馈测试**
+- [x] **Step 5: 运行反馈测试**
 
 Run: `pytest tests/feedback/ -v`
 Expected: 全部 PASS
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add src/agent/feedback/ tests/feedback/
 git commit -m "feat: 反馈闭环 - FeedbackCollector, TestParser, LintParser, TypeCheckParser"
 ```
+
+> ✅ **Task 7 完成** — commit: `45d7d4e`
 
 ---
 
@@ -1922,7 +1936,7 @@ git commit -m "feat: 反馈闭环 - FeedbackCollector, TestParser, LintParser, T
   - `.record_decision(action_summary: str, result_summary: str, approved: bool | None)`
   - `.get_recent_decisions(n: int) -> list[dict]`
 
-- [ ] **Step 1: 写 MemoryStore 测试**
+- [x] **Step 1: 写 MemoryStore 测试**
 
 ```python
 # tests/memory/test_store.py
@@ -1971,12 +1985,12 @@ def test_rules_file_persisted(tmp_path):
     assert "test_rule" in store2.get_rules()
 ```
 
-- [ ] **Step 2: 运行测试验证失败**
+- [x] **Step 2: 运行测试验证失败**
 
 Run: `pytest tests/memory/test_store.py -v`
 Expected: 全部 FAIL
 
-- [ ] **Step 3: 实现 MemoryStore**
+- [x] **Step 3: 实现 MemoryStore**
 
 ```python
 # src/agent/memory/store.py
@@ -2031,17 +2045,19 @@ class MemoryStore:
         return decisions[-n:]
 ```
 
-- [ ] **Step 4: 运行测试验证通过**
+- [x] **Step 4: 运行测试验证通过**
 
 Run: `pytest tests/memory/test_store.py -v`
 Expected: 全部 PASS
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent/memory/ tests/memory/
 git commit -m "feat: 记忆系统 - MemoryStore 规则存储 + 决策日志"
 ```
+
+> ✅ **Task 8 完成** — commit: `dc75293`
 
 ---
 
@@ -2062,7 +2078,7 @@ git commit -m "feat: 记忆系统 - MemoryStore 规则存储 + 决策日志"
   - `StopChecker(max_rounds).should_stop(feedback, round_num) -> bool`
   - `AgentLoop(config, llm, parser, registry, executor, guardrail, feedback_collector, memory).run(task: str) -> AgentResult`
 
-- [ ] **Step 1: 实现 ContextBuilder**
+- [x] **Step 1: 实现 ContextBuilder**
 
 ```python
 # src/agent/context.py
@@ -2107,7 +2123,7 @@ class ContextBuilder:
 4. 所有文件路径使用相对路径"""
 ```
 
-- [ ] **Step 2: 实现 StopChecker**
+- [x] **Step 2: 实现 StopChecker**
 
 ```python
 # src/agent/stop_checker.py
@@ -2133,7 +2149,7 @@ class StopChecker:
         return False, ""
 ```
 
-- [ ] **Step 3: 实现 AgentLoop**
+- [x] **Step 3: 实现 AgentLoop**
 
 ```python
 # src/agent/loop.py
@@ -2255,7 +2271,7 @@ class AgentLoop:
         return AgentResult(success=False, summary=f"超过最大轮数 ({self.config.max_rounds})", rounds=round_num)
 ```
 
-- [ ] **Step 4: 写 AgentLoop 集成测试（Mock LLM）**
+- [x] **Step 4: 写 AgentLoop 集成测试（Mock LLM）**
 
 ```python
 # tests/test_loop.py
@@ -2372,7 +2388,7 @@ def test_agent_guardrail_blocks_dangerous_command(tmp_path):
     assert result.success  # Agent 正常结束（报告拦截）
 ```
 
-- [ ] **Step 5: 写 StopChecker 和 Context 测试**
+- [x] **Step 5: 写 StopChecker 和 Context 测试**
 
 ```python
 # tests/test_stop_checker.py
@@ -2414,17 +2430,19 @@ def test_stop_on_finish_action():
     assert "主动完成" in reason
 ```
 
-- [ ] **Step 6: 运行集成测试**
+- [x] **Step 6: 运行集成测试**
 
 Run: `pytest tests/test_loop.py tests/test_stop_checker.py -v`
 Expected: 全部 PASS
 
-- [ ] **Step 7: 提交**
+- [x] **Step 7: 提交**
 
 ```bash
 git add src/agent/context.py src/agent/stop_checker.py src/agent/loop.py tests/test_context.py tests/test_stop_checker.py tests/test_loop.py
 git commit -m "feat: Agent 主循环 - ContextBuilder, StopChecker, AgentLoop + 集成测试"
 ```
+
+> ✅ **Task 9 完成** — commit: `4fd4565`
 
 ---
 
@@ -2441,7 +2459,7 @@ git commit -m "feat: Agent 主循环 - ContextBuilder, StopChecker, AgentLoop + 
   - `python -m agent status` — 查看状态
 - 凭据安全: 使用 cryptography 库 AES-256-GCM 加密存储
 
-- [ ] **Step 1: 实现凭据管理**
+- [x] **Step 1: 实现凭据管理**
 
 ```python
 # src/agent/main.py (凭据部分)
@@ -2533,7 +2551,7 @@ def clear_credentials():
         print("无凭据可清除")
 ```
 
-- [ ] **Step 2: 实现 CLI 入口**
+- [x] **Step 2: 实现 CLI 入口**
 
 ```python
 # src/agent/main.py (CLI + Agent 组装)
@@ -2660,7 +2678,7 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 3: 写 CLI 测试**
+- [x] **Step 3: 写 CLI 测试**
 
 ```python
 # tests/test_main.py
@@ -2692,17 +2710,19 @@ def test_encrypt_produces_different_ciphertexts():
     assert c1 != c2
 ```
 
-- [ ] **Step 4: 运行测试**
+- [x] **Step 4: 运行测试**
 
 Run: `pytest tests/test_main.py -v`
 Expected: 全部 PASS
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add src/agent/main.py tests/test_main.py
 git commit -m "feat: CLI 入口 + 凭据管理 - AES-256-GCM 加密存储, setup/run/status 命令"
 ```
+
+> ✅ **Task 10 完成** — commit: `6167619`
 
 ---
 
@@ -2715,7 +2735,7 @@ git commit -m "feat: CLI 入口 + 凭据管理 - AES-256-GCM 加密存储, setup
 
 **依赖：** Tasks 1-10 全部完成
 
-- [ ] **Step 1: 机制演示① — 护栏拦截危险命令**
+- [x] **Step 1: 机制演示① — 护栏拦截危险命令**
 
 ```python
 # tests/demo/test_demo_guardrail.py
@@ -2798,7 +2818,7 @@ def test_guardrail_blocks_fatal_command(tmp_path):
     assert len(blocked_decisions) > 0
 ```
 
-- [ ] **Step 2: 机制演示② — 反馈闭环驱动自我修正**
+- [x] **Step 2: 机制演示② — 反馈闭环驱动自我修正**
 
 ```python
 # tests/demo/test_demo_feedback.py
@@ -2945,7 +2965,7 @@ def _write_file(tmp_path, path, content):
     return f"已写入 {target}"
 ```
 
-- [ ] **Step 3: 机制演示③ — 自定义护栏规则**
+- [x] **Step 3: 机制演示③ — 自定义护栏规则**
 
 ```python
 # tests/demo/test_demo_deep.py
@@ -3044,17 +3064,19 @@ def test_custom_pattern_low_risk_allowed(tmp_path):
     assert risk.level == RiskLevel.LOW
 ```
 
-- [ ] **Step 4: 运行三个机制演示**
+- [x] **Step 4: 运行三个机制演示**
 
 Run: `pytest tests/demo/ -v`
 Expected: 全部 PASS
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add tests/demo/
 git commit -m "feat: 机制演示 - 护栏拦截, 反馈闭环, 自定义护栏规则"
 ```
+
+> ✅ **Task 11 完成** — commit: `92ee984`
 
 ---
 
@@ -3067,7 +3089,7 @@ git commit -m "feat: 机制演示 - 护栏拦截, 反馈闭环, 自定义护栏�
 
 **依赖：** Tasks 1-11 全部完成
 
-- [ ] **Step 1: 写 Dockerfile**
+- [x] **Step 1: 写 Dockerfile**
 
 ```dockerfile
 FROM python:3.11-slim
@@ -3090,7 +3112,7 @@ WORKDIR /workspace
 ENTRYPOINT ["python", "-m", "agent"]
 ```
 
-- [ ] **Step 2: 写 CI 配置**
+- [x] **Step 2: 写 CI 配置**
 
 ```yaml
 # .github/workflows/ci.yml
@@ -3130,7 +3152,7 @@ jobs:
         run: docker build -t coding-agent .
 ```
 
-- [ ] **Step 3: 写 README.md**
+- [x] **Step 3: 写 README.md**
 
 ```markdown
 # Coding Agent Harness
@@ -3237,7 +3259,7 @@ src/agent/
 MIT
 ```
 
-- [ ] **Step 4: 构建 Docker 镜像验证**
+- [x] **Step 4: 构建 Docker 镜像验证**
 
 Run: `docker build -t coding-agent .`
 Expected: 构建成功
@@ -3245,17 +3267,19 @@ Expected: 构建成功
 Run: `docker run coding-agent --help`
 Expected: 显示帮助信息
 
-- [ ] **Step 5: 运行全量测试**
+- [x] **Step 5: 运行全量测试**
 
 Run: `pytest tests/ -v`
 Expected: 全部 PASS
 
-- [ ] **Step 6: 提交**
+- [x] **Step 6: 提交**
 
 ```bash
 git add Dockerfile .github/workflows/ci.yml README.md
 git commit -m "feat: Docker 分发 + CI 配置 + README"
 ```
+
+> ✅ **Task 12 完成** — commit: `3a39f40`
 
 ---
 
