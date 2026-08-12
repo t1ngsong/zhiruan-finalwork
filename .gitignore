@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.agent/secrets.enc
+.agent/secrets.*
+.agent/decisions.jsonl
+*.egg-info/
+dist/
+.pytest_cache/
+.superpowers/

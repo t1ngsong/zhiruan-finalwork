@@ -1,0 +1,22 @@
+model: deepseek-chat
+max_rounds: 20
+workspace: "."
+
+tools:
+  shell:
+    enabled: true
+    timeout: 30
+  file:
+    enabled: true
+  search:
+    enabled: true
+
+guardrails:
+  custom_patterns: []
+  auto_approve_patterns: []
+  hitl_timeout: 60
+
+feedback:
+  test_command: "pytest"
+  lint_command: "ruff check ."
+  type_check_command: "mypy ."
