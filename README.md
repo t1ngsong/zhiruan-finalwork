@@ -97,6 +97,15 @@ src/agent/
 - 危险操作（rm -rf /、DROP TABLE 等）自动拦截
 - 中高风险操作需人工审批
 
+## 已知限制
+
+- **平台**：开发和测试均在 Windows / Linux（CI Ubuntu）上通过，macOS 未经测试
+- **架构**：仅支持 x86_64（Python 3.11+ 通用，但 Docker 镜像基于 linux/amd64）
+- **依赖前提**：Docker 分发需 Docker Engine 20.10+；本地开发需 Python 3.11+ 及 pip
+- **LLM 供应商**：当前仅适配 DeepSeek API（兼容 OpenAI SDK 接口），切换供应商需修改源码
+- **护栏覆盖**：8 个内置危险模式覆盖常见场景，但已知 `rm -r -f /`（参数分开写）等变体未捕获
+- **并发**：不支持多 Agent 并发运行，无会话隔离
+
 ## 许可
 
 MIT
