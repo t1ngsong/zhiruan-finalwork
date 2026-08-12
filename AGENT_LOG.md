@@ -225,3 +225,163 @@
 4. **SDD 的修复循环有效但昂贵**：Tasks 5 和 6 都需要修复轮次，但最终都正确了
 5. **死代码是工程债务**：`models.py` 从 Task 1 就存在，到最终审查才清理——说明每任务审查应该更关注未使用代码
 6. **Agent 编排的自主性**：12 个 task 中 10 个一次性通过，2 个需要修复——证明 SDD 模式在规约清晰的场景下高效
+
+---
+
+## 附录 A：关键 Prompt / Context 配置
+
+### A.1 系统提示词（System Prompt）
+
+所有 subagent 派发时使用的系统提示词模板（ContextBuilder 生成）：
+
+```
+你是一个 Coding Agent，负责完成用户指定的编码任务。
+
+你可以使用以下工具：
+[{"name": "read_file", "description": "读取文件内容", ...},
+ {"name": "write_file", "description": "写入文件内容（覆盖）", ...},
+ {"name": "shell", "description": "执行 shell 命令", ...},
+ {"name": "search", "description": "在项目中搜索代码", ...}]
+
+项目约定：
+- code_style: 使用 snake_case 命名
+- test_framework: 使用 pytest
+
+最近决策:
+- shell(pytest tests/) → [测试] 3 passed, 0 failed
+- write_file(path=fix.py, ...) → 已写入 fix.py
+
+规则：
+1. 每次只能调用一个工具
+2. 完成任务后回复 FINISH
+3. 如果工具执行后的反馈显示测试失败、lint 错误或类型错误，请修复代码后重新运行验证
+4. 所有文件路径使用相对路径
+```
+
+### A.2 Task Brief 示例（Task 4: Action Parser）
+
+这是 SDD 派发时实际使用的 task brief 核心内容：
+
+```markdown
+## 接口契约
+
+- Consumes: `LLMResponse` (from Task 2)
+- Produces: `ActionParser.parse(response: LLMResponse) -> Action`
+- `Action` dataclass:
+  - `type: str` — "TEXT" | "TOOL_CALL" | "FINISH"
+  - `content: str` — 文本内容
+  - `tool_name: str` — 工具名称
+  - `args: dict` — 工具参数
+  - `tool_call_id: str` — 调用 ID
+
+## FINISH 检测规则（精确语义）
+
+FINISH 检测必须是 **content.strip().upper().startswith("FINISH")** 或
+"FINISH" 出现在 content.upper() 的前 20 个字符内。
+不使用更宽泛的关键词匹配（如 "DONE"、"完成"）。
+
+## 测试用例
+
+1. `test_parse_finish` — response.content="任务完成", finish_reason="stop" → Action(type="FINISH")
+2. `test_parse_text_response` — 纯文本无 tool_calls → Action(type="TEXT")
+3. `test_parse_tool_call` — tool_calls 含 shell → Action(type="TOOL_CALL", tool_name="shell")
+4. `test_parse_tool_call_with_json_parse_error` — arguments='{invalid json' → Action(type="TEXT", content 含"参数解析失败")
+```
+
+### A.3 全局约束（Global Constraints）
+
+每个 task reviewer 收到的全局约束（从 PLAN.md 提取）：
+
+```markdown
+## 全局约束
+- Python 3.11+，标准库 + openai + pyyaml + pytest + cryptography
+- 所有测试用 pytest 运行，单条命令 pytest tests/ 必须覆盖全部
+- Mock LLM 测试不访问网络、不调用真实 API
+- 凭据绝不硬编码，使用 AES-256-GCM 加密存储
+- TDD 强制：先写失败测试 → 确认红色 → 最小实现 → 确认绿色 → 提交
+- workspace 参数决定 agent 的文件操作范围
+- .agent.yaml 为配置文件，CLI 参数覆盖配置
+```
+
+---
+
+## 附录 B：Subagent 输出关键片段
+
+### B.1 Task 5 修复轮次 — Reviewer 发现路径穿越
+
+**Reviewer 输出**：
+
+```
+🔴 CRITICAL: 路径穿越防护使用 str.startswith()
+
+文件: src/agent/tools/executor.py, 第 12 行
+
+当前代码:
+  if not str(file_path).startswith(str(self.workspace)):
+      raise ValueError("路径超出工作区")
+
+问题: str.startswith() 做前缀匹配，workspace="/tmp/ws" 时，
+/tmp/wsfoo/evil 也会被判定为"在工作区内"。
+
+修复方案: 改用 Path.is_relative_to()
+  if not file_path.resolve().is_relative_to(self.workspace):
+      raise ValueError("路径超出工作区")
+
+建议新增测试：workspace 为 /tmp/ws 时，尝试访问 /tmp/wsfoo/evil
+应被拒绝。
+```
+
+**Implementer 修复后提交**: `bbacea6`
+
+### B.2 Task 6 修复轮次 — Reviewer 发现假超时
+
+**Reviewer 输出**：
+
+```
+🔴 CRITICAL: HITL 超时机制是假的
+
+文件: src/agent/guardrails/hitl.py, 第 20 行
+
+当前代码:
+  answer = input("批准执行? [y/N] (60s 超时自动拒绝): ")
+
+问题: input() 在无输入时会永久阻塞，永远不会"超时"。用户离开
+电脑 1 小时后回来，Agent 还在等。
+
+修复方案: 使用 threading.Event.wait(timeout=N) + daemon 线程:
+  stop_event = threading.Event()
+  def get_input():
+      answer = input(...)
+      stop_event.answer = answer
+      stop_event.set()
+  t = threading.Thread(target=get_input, daemon=True)
+  t.start()
+  if not stop_event.wait(timeout=60):
+      return False  # 超时
+  return stop_event.answer.lower() == "y"
+
+需新增 14 个测试覆盖各状态转换路径。
+```
+
+**Implementer 修复后提交**: `52b2f8d`
+
+### B.3 最终审查 — Subagent 发现死代码
+
+**最终审查 Agent 输出（Sonnet）**：
+
+```
+⚠️ I1: src/agent/models.py — 122 行未使用的死代码
+
+该文件包含 Pydantic 模型定义，但在整个项目中没有任何 import 引用。
+这是旧版设计的残留（Task 1 创建，后续任务改用 dataclass 替代）。
+建议删除该文件并清理 conftest.py 中对应的 fixture。
+
+其他发现:
+- I2: main.py 中 --no-guardrails CLI 标志未被使用
+- I3: pip install 在 patterns.py 中风险等级为 LOW，建议改为 MEDIUM
+- I4: register_all_tools() 和 build_agent() 重复注册工具
+- I5: 两处 unused imports (base64, Path)
+- I6: ConfigLoader 缺少 file_tools_enabled/search_enabled 的 YAML 解析
+```
+
+**修复提交**: `5ca677c` — 全部 6 项 ADDRESSED
